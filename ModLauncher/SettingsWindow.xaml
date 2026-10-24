@@ -1,0 +1,82 @@
+﻿<ui:FluentWindow x:Class="ModLauncher.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        Title="Ayarlar" Height="620" Width="520" MinHeight="460" MinWidth="440"
+        ExtendsContentIntoTitleBar="True"
+        WindowBackdropType="Mica"
+        WindowCornerPreference="Round"
+        WindowStartupLocation="CenterOwner">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ui:TitleBar Grid.Row="0" Title="Ayarlar"/>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="20,8,20,20">
+
+                <!-- Görünüm -->
+                <TextBlock Text="Görünüm" FontWeight="Bold" Margin="0,0,0,8"/>
+                <TextBlock Text="Tema" Margin="0,0,0,4"/>
+                <ComboBox x:Name="ThemeBox" HorizontalAlignment="Stretch"
+                          SelectionChanged="ThemeBox_SelectionChanged">
+                    <ComboBoxItem Content="Windows temasını takip et"/>
+                    <ComboBoxItem Content="Koyu"/>
+                    <ComboBoxItem Content="Açık"/>
+                </ComboBox>
+
+                <!-- Tarayıcı -->
+                <TextBlock Text="Tarayıcı" FontWeight="Bold" Margin="0,24,0,8"/>
+                <TextBlock Text="Sitelerin açılacağı genel tarayıcı" Margin="0,0,0,4"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ComboBox x:Name="BrowserBox" DisplayMemberPath="Name" SelectedValuePath="Path"
+                              HorizontalAlignment="Stretch"
+                              SelectionChanged="BrowserBox_SelectionChanged"/>
+                    <Button Grid.Column="1" Content="Gözat..." Margin="8,0,0,0"
+                            Click="BrowseBrowser_Click"/>
+                </Grid>
+                <TextBlock Text="Bir eylemde ayrıca tarayıcı seçtiysen o eylem için o geçerli olur."
+                           Foreground="Gray" TextWrapping="Wrap" Margin="0,4,0,0"/>
+
+                <!-- Modları çalıştırma -->
+                <TextBlock Text="Mod çalıştırma" FontWeight="Bold" Margin="0,24,0,8"/>
+                <CheckBox x:Name="ConfirmBox" Content="Modu çalıştırmadan önce onay sor"
+                          Checked="Confirm_Changed" Unchecked="Confirm_Changed"/>
+
+                <TextBlock Margin="0,16,0,4">
+                    <Run Text="Eylemler arası bekleme: "/>
+                    <Run x:Name="DelayText" Text="500 ms" FontWeight="SemiBold"/>
+                </TextBlock>
+                <Slider x:Name="DelaySlider" Minimum="0" Maximum="3000"
+                        TickFrequency="100" IsSnapToTickEnabled="True"
+                        ValueChanged="DelaySlider_ValueChanged"/>
+
+                <!-- Başlangıç ve tepsi -->
+                <TextBlock Text="Başlangıç ve tepsi" FontWeight="Bold" Margin="0,24,0,8"/>
+                <CheckBox x:Name="TrayBox" Content="Pencereyi kapatınca sistem tepsisine küçül"
+                          Checked="Tray_Changed" Unchecked="Tray_Changed"/>
+                <CheckBox x:Name="StartupBox" Content="Windows ile birlikte başlat" Margin="0,8,0,0"
+                          Checked="Startup_Changed" Unchecked="Startup_Changed"/>
+                <TextBlock Text="Windows açılınca pencere hiç açılmadan tepside beklemesi için ikisini de işaretle."
+                           Foreground="Gray" TextWrapping="Wrap" Margin="0,4,0,0"/>
+
+                <!-- Yedekleme -->
+                <TextBlock Text="Yedekleme" FontWeight="Bold" Margin="0,24,0,8"/>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Modları dışa aktar..." Click="Export_Click" Margin="0,0,8,0"/>
+                    <Button Content="Modları içe aktar..." Click="Import_Click"/>
+                </StackPanel>
+                <TextBlock Text="İçe aktarılan modlar mevcut modların üstüne yazılmaz, listeye eklenir. Ayarlar (tarayıcı, tema vb.) bilgisayara özel olduğu için aktarılmaz."
+                           Foreground="Gray" TextWrapping="Wrap" Margin="0,4,0,0"/>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</ui:FluentWindow>
