@@ -48,6 +48,13 @@ public partial class MainWindow : FluentWindow
         // Bilgisayar kapanırken pencere engel olmasın
         System.Windows.Application.Current.SessionEnding += (_, _) => exiting = true;
 
+        // Uygulama kapanırken (tepsiden Çıkış dahil) kısayolları ve tepsi simgesini temizle
+        System.Windows.Application.Current.Exit += (_, _) =>
+        {
+            hotkeys.Dispose();
+            tray.Dispose();
+        };
+
         Closing += OnWindowClosing;
         ShowPanel(null);
     }
@@ -135,11 +142,7 @@ public partial class MainWindow : FluentWindow
         {
             e.Cancel = true;
             Hide();
-            return;
         }
-
-        hotkeys.Dispose();
-        tray.Dispose();
     }
 
     // Tepsiden ya da ikinci kopya açılınca pencereyi öne getirir

@@ -77,9 +77,18 @@ public static class ModeRunner
 
     static void StartUrl(ModeAction action, AppSettings settings)
     {
-        var url = action.Target.Trim();
-        if (!url.Contains("://"))
-            url = "https://" + url;   // "google.com" yazılmışsa başına https ekle
+        var text = action.Target.Trim();
+        if (!text.Contains("://"))
+            text = "https://" + text;   // "google.com" yazılmışsa başına https ekle
+
+        // Sadece http ve https adreslerine izin ver (file:// gibi adresler yerel programları açabilir)
+        if (!Uri.TryCreate(text, UriKind.Absolute, out var uri) ||
+            (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            throw new InvalidOperationException("Geçerli bir http ya da https adresi değil.");
+        }
+
+        var url = uri.AbsoluteUri;   // özel karakterleri güvenli hale getirir
 
         // Önce eylemin kendi tarayıcısına bak, boşsa ayarlardaki tarayıcıya
         var browser = !string.IsNullOrWhiteSpace(action.BrowserPath)

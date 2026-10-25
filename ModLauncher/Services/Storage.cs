@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Collections.ObjectModel;
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -30,7 +31,8 @@ public static class Storage
         try
         {
             var json = File.ReadAllText(FilePath);
-            return JsonSerializer.Deserialize<AppData>(json, Options) ?? CreateDefault();
+            var data = JsonSerializer.Deserialize<AppData>(json, Options);
+            return data == null ? CreateDefault() : Sanitize(data);
         }
         catch (JsonException)
         {
@@ -42,8 +44,21 @@ public static class Storage
 
     public static void Save(AppData data)
     {
-        Directory.CreateDirectory(Folder);
-        File.WriteAllText(FilePath, JsonSerializer.Serialize(data, Options));
+        try
+        {
+            Directory.CreateDirectory(Folder);
+
+            // Önce geçici dosyaya yaz, sonra asıl dosyanın yerine koy:
+            // yazma sırasında bir şey ters giderse eski dosya bozulmaz
+            var temp = FilePath + ".tmp";
+            File.WriteAllText(temp, JsonSerializer.Serialize(data, Options));
+            File.Move(temp, FilePath, overwrite: true);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // Kaydedilemedi (disk dolu, dosya kilitli vb.), uygulama çökmesin.
+            // Bir sonraki değişiklikte tekrar denenecek.
+        }
     }
 
     // Sadece modları bir dosyaya yazar (ayarlar bilgisayara özel olduğu için dahil değil)
@@ -61,7 +76,45 @@ public static class Storage
     {
         var json = File.ReadAllText(path);
         var imported = JsonSerializer.Deserialize<AppData>(json, Options);
-        return imported?.Modes.ToList() ?? new List<Mode>();
+        return imported == null ? new List<Mode>() : Sanitize(imported).Modes.ToList();
+    }
+
+    // Bozuk ya da elle düzenlenmiş dosyalarda boş (null) kalan alanları düzeltir
+    static AppData Sanitize(AppData data)
+    {
+        data.Settings ??= new AppSettings();
+        data.Modes ??= new ObservableCollection<Mode>();
+
+        for (int i = data.Modes.Count - 1; i >= 0; i--)
+        {
+            var mode = data.Modes[i];
+            if (mode == null)
+            {
+                data.Modes.RemoveAt(i);
+                continue;
+            }
+
+            mode.Name ??= "";
+            mode.Hotkey ??= "";
+            mode.Color ??= "Transparent";
+            mode.Actions ??= new ObservableCollection<ModeAction>();
+
+            for (int j = mode.Actions.Count - 1; j >= 0; j--)
+            {
+                var action = mode.Actions[j];
+                if (action == null)
+                {
+                    mode.Actions.RemoveAt(j);
+                    continue;
+                }
+
+                action.Target ??= "";
+                action.Arguments ??= "";
+                action.BrowserPath ??= "";
+            }
+        }
+
+        return data;
     }
 
     static AppData CreateDefault() => new()

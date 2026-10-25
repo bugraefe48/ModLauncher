@@ -12,6 +12,16 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // Beklenmeyen bir hata olursa uygulama sessizce kapanmasın
+        DispatcherUnhandledException += (_, args) =>
+        {
+            MessageBox.Show(
+                "Beklenmeyen bir hata oluştu:\n\n" + args.Exception.Message +
+                "\n\nUygulama çalışmaya devam edecek. Sorun tekrarlanırsa GitHub sayfasından bildirebilirsin.",
+                "Mod Launcher", MessageBoxButton.OK, MessageBoxImage.Error);
+            args.Handled = true;
+        };
+
         var evt = new EventWaitHandle(false, EventResetMode.AutoReset, "ModLauncher_ShowEvent");
         showEvent = evt;
         mutex = new Mutex(true, "ModLauncher_SingleInstance", out bool createdNew);

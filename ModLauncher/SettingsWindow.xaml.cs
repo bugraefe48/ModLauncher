@@ -168,6 +168,16 @@ public partial class SettingsWindow : FluentWindow
             return;
         }
 
+        // İçe aktarılan modlar program çalıştırabilir: ne yapacaklarını göster ve onay iste
+        int openCount = imported.Sum(m => m.Actions.Count(a => a.Type == ActionType.App));
+        int closeCount = imported.Sum(m => m.Actions.Count(a => a.Type == ActionType.CloseApp));
+
+        var answer = System.Windows.MessageBox.Show(
+            $"Dosyada {imported.Count} mod var. Bu modlar {openCount} program açacak ve {closeCount} program kapatacak.\n\n" +
+            "Sadece güvendiğin kişilerden aldığın dosyaları içe aktar. Devam edilsin mi?",
+            "İçe aktar", System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
+        if (answer != System.Windows.MessageBoxResult.Yes) return;
+
         foreach (var mode in imported)
         {
             mode.Id = Guid.NewGuid();
