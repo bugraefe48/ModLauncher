@@ -1,29 +1,77 @@
-﻿using System.Windows;
+using System.Windows;
+using System.Windows.Media;
 using Wpf.Ui.Appearance;
 
 namespace ModLauncher;
 
 public static class ThemeHelper
 {
-    // Seçilen temayı uygulamaya uygular
-    public static void Apply(AppTheme theme, Window window)
+    static AppSettings? current;
+    static bool hooked;
+    static bool applying;
+
+    public static void Apply(AppSettings settings, Window window)
     {
-        switch (theme)
+        current = settings;
+        applying = true;
+        try
         {
-            case AppTheme.Dark:
-                SystemThemeWatcher.UnWatch(window);   // Windows'u takip etmeyi bırak
-                ApplicationThemeManager.Apply(ApplicationTheme.Dark);
-                break;
+            switch (settings.Theme)
+            {
+                case AppTheme.Dark:
+                    SystemThemeWatcher.UnWatch(window);
+                    ApplicationThemeManager.Apply(ApplicationTheme.Dark);
+                    break;
 
-            case AppTheme.Light:
-                SystemThemeWatcher.UnWatch(window);
-                ApplicationThemeManager.Apply(ApplicationTheme.Light);
-                break;
+                case AppTheme.Light:
+                    SystemThemeWatcher.UnWatch(window);
+                    ApplicationThemeManager.Apply(ApplicationTheme.Light);
+                    break;
 
-            default:   // System
-                ApplicationThemeManager.ApplySystemTheme();
-                SystemThemeWatcher.Watch(window);     // Windows değişince biz de değişelim
-                break;
+                default:
+                    ApplicationThemeManager.ApplySystemTheme();
+                    SystemThemeWatcher.Watch(window);
+                    break;
+            }
+
+            ApplyAccent(settings);
+        }
+        finally
+        {
+            applying = false;
+        }
+
+        if (!hooked)
+        {
+            hooked = true;
+
+            // Windows teması değişince WPF-UI vurgu rengini sıfırlar, seçileni geri koy
+            ApplicationThemeManager.Changed += (_, _) =>
+            {
+                if (!applying && current != null)
+                    ApplyAccent(current);
+            };
+        }
+    }
+
+    static void ApplyAccent(AppSettings settings)
+    {
+        try
+        {
+            Color color = ApplicationAccentColorManager.SystemAccent;
+
+            if (!string.IsNullOrWhiteSpace(settings.AccentColor) &&
+                ColorConverter.ConvertFromString(settings.AccentColor) is Color custom)
+            {
+                color = custom;
+            }
+
+            ApplicationAccentColorManager.Apply(color, ApplicationThemeManager.GetAppTheme());
+            Application.Current.Resources["AppAccentBrush"] = new SolidColorBrush(color);
+        }
+        catch (Exception)
+        {
+            // Vurgu rengi uygulanamazsa varsayılan renkler kalır
         }
     }
 }

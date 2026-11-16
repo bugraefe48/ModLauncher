@@ -1,0 +1,114 @@
+<UserControl x:Class="ModLauncher.SettingsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+             xmlns:local="clr-namespace:ModLauncher">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,0,10,0">
+            <TextBlock Style="{StaticResource PageTitle}" Text="{local:T Nav_Settings}"/>
+
+            <!-- Görünüm -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="{local:T Settings_Appearance}"/>
+
+                    <TextBlock Text="{local:T Settings_Theme}" Margin="0,0,0,4"/>
+                    <ComboBox x:Name="ThemeBox" HorizontalAlignment="Stretch"
+                              SelectionChanged="ThemeBox_SelectionChanged">
+                        <ComboBoxItem Content="{local:T Theme_System}"/>
+                        <ComboBoxItem Content="{local:T Theme_Dark}"/>
+                        <ComboBoxItem Content="{local:T Theme_Light}"/>
+                    </ComboBox>
+
+                    <TextBlock Text="{local:T Settings_Accent}" Margin="0,16,0,4"/>
+                    <CheckBox x:Name="SystemAccentBox" Content="{local:T Settings_AccentSystem}"
+                              Checked="SystemAccent_Changed" Unchecked="SystemAccent_Changed"/>
+                    <ListBox x:Name="AccentList" Style="{StaticResource SwatchList}"
+                             SelectedValuePath="Value" Margin="0,6,0,0"
+                             SelectionChanged="AccentList_SelectionChanged"/>
+
+                    <TextBlock Text="{local:T Settings_Language}" Margin="0,16,0,4"/>
+                    <ComboBox x:Name="LangBox" HorizontalAlignment="Stretch"
+                              SelectionChanged="LangBox_SelectionChanged">
+                        <ComboBoxItem Content="Türkçe"/>
+                        <ComboBoxItem Content="English"/>
+                    </ComboBox>
+                </StackPanel>
+            </Border>
+
+            <!-- Tarayıcı -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="{local:T Settings_Browser}"/>
+                    <TextBlock Text="{local:T Settings_BrowserLabel}" Margin="0,0,0,4"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <ComboBox x:Name="BrowserBox" DisplayMemberPath="Name" SelectedValuePath="Path"
+                                  HorizontalAlignment="Stretch"
+                                  SelectionChanged="BrowserBox_SelectionChanged"/>
+                        <Button Grid.Column="1" Content="{local:T Action_Browse}" Margin="8,0,0,0"
+                                Click="BrowseBrowser_Click"/>
+                    </Grid>
+                    <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0"
+                               Text="{local:T Settings_BrowserHint}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Mod çalıştırma -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="{local:T Settings_Run}"/>
+                    <CheckBox x:Name="ConfirmBox" Content="{local:T Settings_Confirm}"
+                              Checked="Confirm_Changed" Unchecked="Confirm_Changed"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,14,0,4">
+                        <TextBlock Text="{local:T Settings_Delay}"/>
+                        <TextBlock x:Name="DelayText" FontWeight="SemiBold" Margin="6,0,0,0"/>
+                    </StackPanel>
+                    <Slider x:Name="DelaySlider" Minimum="0" Maximum="3000"
+                            TickFrequency="100" IsSnapToTickEnabled="True"
+                            ValueChanged="DelaySlider_ValueChanged"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Başlangıç ve tepsi -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="{local:T Settings_Startup}"/>
+                    <CheckBox x:Name="TrayBox" Content="{local:T Settings_Tray}"
+                              Checked="Tray_Changed" Unchecked="Tray_Changed"/>
+                    <CheckBox x:Name="StartupBox" Content="{local:T Settings_StartWithWindows}" Margin="0,8,0,0"
+                              Checked="Startup_Changed" Unchecked="Startup_Changed"/>
+                    <TextBlock Style="{StaticResource Hint}" Margin="0,6,0,0"
+                               Text="{local:T Settings_StartupHint}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Yedekleme -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="{local:T Settings_Backup}"/>
+                    <WrapPanel>
+                        <Button Content="{local:T Settings_Export}" Click="Export_Click" Margin="0,0,8,8"/>
+                        <Button Content="{local:T Settings_Import}" Click="Import_Click" Margin="0,0,8,8"/>
+                    </WrapPanel>
+                    <TextBlock Style="{StaticResource Hint}" Text="{local:T Settings_BackupHint}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Hakkında -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource SectionTitle}" Text="{local:T Settings_About}"/>
+                    <TextBlock x:Name="VersionText"/>
+                    <TextBlock Margin="0,6,0,0">
+                        <Hyperlink NavigateUri="https://github.com/bugraefe48/ModLauncher"
+                                   RequestNavigate="Link_RequestNavigate">github.com/bugraefe48/ModLauncher</Hyperlink>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

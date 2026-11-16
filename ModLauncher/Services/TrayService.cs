@@ -1,4 +1,4 @@
-﻿namespace ModLauncher;
+namespace ModLauncher;
 
 public class TrayService : IDisposable
 {
@@ -14,11 +14,10 @@ public class TrayService : IDisposable
         this.exitApp = exitApp;
 
         var menu = new System.Windows.Forms.ContextMenuStrip();
-        menu.Opening += (_, _) => BuildMenu(menu);   // her açılışta modları yeniden listele
+        menu.Opening += (_, _) => BuildMenu(menu);
 
         icon = new System.Windows.Forms.NotifyIcon
         {
-            // Uygulamanın kendi simgesi (exe'nin ikonu)
             Icon = System.Drawing.Icon.ExtractAssociatedIcon(Environment.ProcessPath!)
                    ?? System.Drawing.SystemIcons.Application,
             Text = "Mod Launcher",
@@ -26,7 +25,6 @@ public class TrayService : IDisposable
             Visible = true
         };
 
-        // Sol tık: pencereyi aç
         icon.MouseClick += (_, e) =>
         {
             if (e.Button == System.Windows.Forms.MouseButtons.Left)
@@ -37,12 +35,12 @@ public class TrayService : IDisposable
     void BuildMenu(System.Windows.Forms.ContextMenuStrip menu)
     {
         menu.Items.Clear();
-        menu.Items.Add("Mod Launcher'ı aç", null, (_, _) => showWindow());
+        menu.Items.Add(Loc.T("Tray_Open"), null, (_, _) => showWindow());
         menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
 
         if (data.Modes.Count == 0)
         {
-            var empty = menu.Items.Add("(Henüz mod yok)");
+            var empty = menu.Items.Add(Loc.T("Tray_NoModes"));
             empty.Enabled = false;
         }
 
@@ -52,19 +50,18 @@ public class TrayService : IDisposable
         }
 
         menu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
-        menu.Items.Add("Çıkış", null, (_, _) => exitApp());
+        menu.Items.Add(Loc.T("Tray_Exit"), null, (_, _) => exitApp());
     }
 
-    // Tepsiden ya da kısayoldan çalıştırılan modlar onay sormaz, çünkü seçim bilinçli
+    // Tepsiden ya da kısayoldan çalıştırılan modlar onay sormaz
     public async Task RunAsync(Mode mode)
     {
         var errors = await ModeRunner.RunAsync(mode, data.Settings);
 
         if (errors.Count > 0)
-            Notify("Bazı eylemler çalışmadı", string.Join("\n", errors));
+            Notify(Loc.T("Msg_ActionsFailedTitle"), string.Join("\n", errors));
     }
 
-    // Saatin yanında küçük bir bildirim balonu gösterir
     public void Notify(string title, string text)
     {
         icon.ShowBalloonTip(4000, title, text, System.Windows.Forms.ToolTipIcon.Warning);
@@ -72,7 +69,7 @@ public class TrayService : IDisposable
 
     public void Dispose()
     {
-        icon.Visible = false;   // yoksa kapanınca simge tepside hayalet gibi kalabilir
+        icon.Visible = false;
         icon.Dispose();
     }
 }

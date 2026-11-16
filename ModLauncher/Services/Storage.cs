@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -57,7 +57,6 @@ public static class Storage
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             // Kaydedilemedi (disk dolu, dosya kilitli vb.), uygulama çökmesin.
-            // Bir sonraki değişiklikte tekrar denenecek.
         }
     }
 

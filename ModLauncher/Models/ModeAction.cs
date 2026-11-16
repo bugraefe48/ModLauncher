@@ -1,13 +1,13 @@
-﻿using System.IO;
+using System.IO;
 using System.Text.Json.Serialization;
 
 namespace ModLauncher;
 
 public enum ActionType
 {
-    App,        // bir programı aç
-    Url,        // bir web sitesi aç
-    CloseApp    // çalışan bir programı kapat
+    App,
+    Url,
+    CloseApp
 }
 
 public class ModeAction : NotifyBase
@@ -24,40 +24,54 @@ public class ModeAction : NotifyBase
         set { type = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayName)); }
     }
 
-    public string Target   // programın yolu, işlem adı ya da sitenin adresi
+    public string Target
     {
         get => target;
-        set { target = value; OnPropertyChanged(); OnPropertyChanged(nameof(DisplayName)); }
+        set
+        {
+            // Kısayol (.lnk) seçildiyse gösterdiği gerçek programa çevir
+            if (type != ActionType.Url && value is not null &&
+                value.EndsWith(".lnk", StringComparison.OrdinalIgnoreCase) && File.Exists(value))
+            {
+                var resolved = ShortcutResolver.Resolve(value);
+                if (resolved != null)
+                {
+                    value = resolved.Value.Target;
+                    if (string.IsNullOrWhiteSpace(arguments) &&
+                        !string.IsNullOrWhiteSpace(resolved.Value.Arguments))
+                    {
+                        Arguments = resolved.Value.Arguments;
+                    }
+                }
+            }
+
+            target = value ?? "";
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(DisplayName));
+        }
     }
 
-    public string Arguments   // program için isteğe bağlı ek komutlar
+    public string Arguments
     {
         get => arguments;
         set { arguments = value; OnPropertyChanged(); }
     }
 
-    public string BrowserPath   // boşsa ayarlardaki tarayıcı kullanılır
+    public string BrowserPath
     {
         get => browserPath;
         set { browserPath = value; OnPropertyChanged(); }
     }
 
-    public bool ForceClose   // sadece CloseApp için: kapanmazsa zorla kapat
+    public bool ForceClose
     {
         get => forceClose;
         set { forceClose = value; OnPropertyChanged(); }
     }
 
-    // "C:\...\chrome.exe" ya da "chrome" yazısından işlem adını ("chrome") çıkarır
     public static string ProcessNameOf(string target) =>
         Path.GetFileNameWithoutExtension(target.Trim());
 
-    // Listede görünen ad (JSON dosyasına yazılmaz)
     [JsonIgnore]
-    public string DisplayName => Type switch
-    {
-        ActionType.Url => Target,
-        ActionType.CloseApp => "Kapat: " + ProcessNameOf(Target),
-        _ => ProcessNameOf(Target)
-    };
+    public string DisplayName => Type == ActionType.Url ? Target : ProcessNameOf(Target);
 }

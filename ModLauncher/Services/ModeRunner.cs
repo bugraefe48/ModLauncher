@@ -1,11 +1,10 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 
 namespace ModLauncher;
 
 public static class ModeRunner
 {
-    // Modun eylemlerini sırayla çalıştırır, hata veren eylemlerin açıklamalarını döndürür
     public static async Task<List<string>> RunAsync(Mode mode, AppSettings settings)
     {
         var errors = new List<string>();
@@ -14,12 +13,10 @@ public static class ModeRunner
         {
             var action = mode.Actions[i];
 
-            // Bir eylem bozuksa diğerleri yine de çalışsın
             var error = await TryExecuteAsync(action, settings);
             if (error != null)
                 errors.Add($"{action.DisplayName}: {error}");
 
-            // Son eylemden sonra beklemeye gerek yok
             bool isLast = i == mode.Actions.Count - 1;
             if (!isLast && settings.DelayBetweenActionsMs > 0)
                 await Task.Delay(settings.DelayBetweenActionsMs);
@@ -28,7 +25,6 @@ public static class ModeRunner
         return errors;
     }
 
-    // Tek bir eylemi dener, hata olursa açıklamasını döndürür (sorun yoksa null)
     public static async Task<string?> TryExecuteAsync(ModeAction action, AppSettings settings)
     {
         try
@@ -45,7 +41,7 @@ public static class ModeRunner
     static async Task ExecuteAsync(ModeAction action, AppSettings settings)
     {
         if (string.IsNullOrWhiteSpace(action.Target))
-            throw new InvalidOperationException("Hedef boş.");
+            throw new InvalidOperationException(Loc.T("Err_EmptyTarget"));
 
         switch (action.Type)
         {
@@ -63,34 +59,58 @@ public static class ModeRunner
 
     static void StartApp(ModeAction action)
     {
-        if (!File.Exists(action.Target))
-            throw new FileNotFoundException("Dosya bulunamadı.");
+        var target = Environment.ExpandEnvironmentVariables(action.Target.Trim().Trim('"'));
 
-        Process.Start(new ProcessStartInfo
+        if (File.Exists(target))
         {
-            FileName = action.Target,
-            Arguments = action.Arguments,
-            UseShellExecute = true,
-            WorkingDirectory = Path.GetDirectoryName(action.Target) ?? ""
-        });
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = target,
+                Arguments = action.Arguments,
+                UseShellExecute = true,
+                WorkingDirectory = Path.GetDirectoryName(target) ?? ""
+            });
+            return;
+        }
+
+        // Yol değil de sadece ad yazılmışsa ("brave", "notepad") Windows'ta ara
+        bool looksLikePath = target.Contains('\\') || target.Contains('/') || target.Contains(':');
+        if (!looksLikePath)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = target,
+                    Arguments = action.Arguments,
+                    UseShellExecute = true
+                });
+                return;
+            }
+            catch (System.ComponentModel.Win32Exception)
+            {
+                throw new FileNotFoundException(Loc.T("Err_AppNotFound", target));
+            }
+        }
+
+        throw new FileNotFoundException(Loc.T("Err_FileNotFound", target));
     }
 
     static void StartUrl(ModeAction action, AppSettings settings)
     {
         var text = action.Target.Trim();
         if (!text.Contains("://"))
-            text = "https://" + text;   // "google.com" yazılmışsa başına https ekle
+            text = "https://" + text;
 
-        // Sadece http ve https adreslerine izin ver (file:// gibi adresler yerel programları açabilir)
+        // Sadece http ve https adreslerine izin ver
         if (!Uri.TryCreate(text, UriKind.Absolute, out var uri) ||
             (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
         {
-            throw new InvalidOperationException("Geçerli bir http ya da https adresi değil.");
+            throw new InvalidOperationException(Loc.T("Err_BadUrl"));
         }
 
-        var url = uri.AbsoluteUri;   // özel karakterleri güvenli hale getirir
+        var url = uri.AbsoluteUri;
 
-        // Önce eylemin kendi tarayıcısına bak, boşsa ayarlardaki tarayıcıya
         var browser = !string.IsNullOrWhiteSpace(action.BrowserPath)
             ? action.BrowserPath
             : settings.DefaultBrowserPath;
@@ -98,7 +118,7 @@ public static class ModeRunner
         if (!string.IsNullOrWhiteSpace(browser))
         {
             if (!File.Exists(browser))
-                throw new FileNotFoundException("Tarayıcı bulunamadı: " + browser);
+                throw new FileNotFoundException(Loc.T("Err_BrowserNotFound", browser));
 
             Process.Start(new ProcessStartInfo
             {
@@ -109,7 +129,6 @@ public static class ModeRunner
         }
         else
         {
-            // Tarayıcı seçilmemişse Windows'un varsayılan tarayıcısı açar
             Process.Start(new ProcessStartInfo
             {
                 FileName = url,
@@ -122,16 +141,14 @@ public static class ModeRunner
     {
         var name = ModeAction.ProcessNameOf(action.Target);
         var processes = Process.GetProcessesByName(name);
-        if (processes.Length == 0) return;   // zaten kapalı, sorun yok
+        if (processes.Length == 0) return;
 
         try
         {
-            // Penceresi olan işlemler: nazikçe kapat (kaydet sorusu çıkabilir)
             var windowed = processes.Where(p => p.MainWindowHandle != IntPtr.Zero).ToList();
             foreach (var p in windowed)
                 p.CloseMainWindow();
 
-            // Kapanmaları için en fazla 3 saniye bekle
             using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
             try
             {
@@ -142,19 +159,16 @@ public static class ModeRunner
 
             if (action.ForceClose)
             {
-                // Hâlâ açık olan ne varsa (arka plan işlemleri dahil) zorla kapat
                 foreach (var p in processes.Where(p => !p.HasExited))
                     p.Kill(entireProcessTree: true);
                 return;
             }
 
             if (windowed.Count == 0)
-                throw new InvalidOperationException(
-                    "Açık pencere bulunamadı (arka planda çalışıyor olabilir). 'Kapanmazsa zorla kapat' seçeneğini işaretleyebilirsin.");
+                throw new InvalidOperationException(Loc.T("Err_NoWindow"));
 
             if (windowed.Any(p => !p.HasExited))
-                throw new InvalidOperationException(
-                    "Uygulama kapanmadı (kaydedilmemiş bir iş olabilir).");
+                throw new InvalidOperationException(Loc.T("Err_NotClosed"));
         }
         finally
         {

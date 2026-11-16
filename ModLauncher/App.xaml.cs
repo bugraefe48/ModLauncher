@@ -1,12 +1,12 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Windows;
 
 namespace ModLauncher;
 
 public partial class App : Application
 {
-    static Mutex? mutex;                 // uygulamanın tek kopyasının çalışmasını sağlar
-    static EventWaitHandle? showEvent;   // ikinci kopya, birinciye "pencereni göster" der
+    static Mutex? mutex;
+    static EventWaitHandle? showEvent;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -15,9 +15,7 @@ public partial class App : Application
         // Beklenmeyen bir hata olursa uygulama sessizce kapanmasın
         DispatcherUnhandledException += (_, args) =>
         {
-            MessageBox.Show(
-                "Beklenmeyen bir hata oluştu:\n\n" + args.Exception.Message +
-                "\n\nUygulama çalışmaya devam edecek. Sorun tekrarlanırsa GitHub sayfasından bildirebilirsin.",
+            MessageBox.Show(Loc.T("Err_Unexpected", args.Exception.Message),
                 "Mod Launcher", MessageBoxButton.OK, MessageBoxImage.Error);
             args.Handled = true;
         };
@@ -26,14 +24,15 @@ public partial class App : Application
         showEvent = evt;
         mutex = new Mutex(true, "ModLauncher_SingleInstance", out bool createdNew);
 
+        // Uygulama zaten çalışıyorsa çalışan pencereyi öne getir ve çık
         if (!createdNew)
         {
-            evt.Set();    // çalışan kopyanın penceresini öne getir
+            evt.Set();
             Shutdown();
             return;
         }
 
-        // Windows ile başlayınca "--tray" ile gelir, o zaman pencere açılmadan tepside beklesin
+        // Windows ile başlayınca "--tray" ile gelir
         bool launchedAtLogin = e.Args.Contains("--tray");
 
         var window = new MainWindow();
@@ -42,13 +41,13 @@ public partial class App : Application
         if (!(launchedAtLogin && window.StartHidden))
             window.Show();
 
-        // Arka planda "göster" sinyalini bekle
+        // Arka planda "pencereyi göster" sinyalini bekle
         var listener = new Thread(() =>
         {
             while (evt.WaitOne())
             {
                 try { Dispatcher.Invoke(() => window.ShowWindow()); }
-                catch (Exception) { return; }   // uygulama kapanırken
+                catch (Exception) { return; }
             }
         })
         { IsBackground = true };

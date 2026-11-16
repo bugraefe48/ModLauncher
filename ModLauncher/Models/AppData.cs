@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 
 namespace ModLauncher;
 
@@ -12,11 +12,14 @@ public enum AppTheme
 public class AppSettings
 {
     public AppTheme Theme { get; set; } = AppTheme.System;
-    public string DefaultBrowserPath { get; set; } = "";   // boşsa Windows'un varsayılan tarayıcısı
-    public bool ConfirmBeforeRun { get; set; } = true;     // modu çalıştırmadan önce sor
-    public int DelayBetweenActionsMs { get; set; } = 500;  // eylemler arası bekleme (milisaniye)
+    public string AccentColor { get; set; } = "";       // "#RRGGBB", boşsa Windows vurgu rengi
+    public string Language { get; set; } = "";          // "tr" ya da "en", boşsa Windows dili
+    public string DefaultBrowserPath { get; set; } = "";
+    public bool ConfirmBeforeRun { get; set; } = true;
+    public int DelayBetweenActionsMs { get; set; } = 500;
     public bool StartWithWindows { get; set; } = false;
-    public bool MinimizeToTray { get; set; } = false;      // kapatınca tepsiye küçül
+    public bool MinimizeToTray { get; set; } = false;
+    public bool TourShown { get; set; } = false;        // karşılama yardımı gösterildi mi
 }
 
 public class AppData

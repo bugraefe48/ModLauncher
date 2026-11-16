@@ -1,9 +1,9 @@
-﻿<ui:FluentWindow x:Class="ModLauncher.MainWindow"
+<ui:FluentWindow x:Class="ModLauncher.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:local="clr-namespace:ModLauncher"
-        Title="Mod Launcher" Height="620" Width="940" MinHeight="480" MinWidth="700"
+        Title="Mod Launcher" Height="700" Width="1100" MinHeight="540" MinWidth="860"
         ExtendsContentIntoTitleBar="True"
         WindowBackdropType="Mica"
         WindowCornerPreference="Round"
@@ -16,171 +16,96 @@
 
         <ui:TitleBar Grid.Row="0" Title="Mod Launcher"/>
 
-        <Grid Grid.Row="1" Margin="12">
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="260"/>
+                <ColumnDefinition Width="220"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- SOL: mod listesi -->
-            <Grid Grid.Column="0" Margin="0,0,10,0">
+            <!-- Kenar menü -->
+            <Grid Grid.Column="0" Margin="12,4,6,14">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Text="Modlar" FontWeight="Bold" Margin="4,0,0,6"/>
-
-                <TreeView x:Name="ModeTree" Grid.Row="1"
-                          SelectedItemChanged="ModeTree_SelectedItemChanged">
-                    <TreeView.Resources>
-
-                        <HierarchicalDataTemplate DataType="{x:Type local:Mode}"
-                                                  ItemsSource="{Binding Actions}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock x:Name="FolderIcon" Text="📁" Margin="0,0,6,0"/>
-                                <Ellipse Width="9" Height="9" Margin="0,0,6,0"
-                                         VerticalAlignment="Center" Fill="{Binding Color}"/>
-                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                            </StackPanel>
-                            <HierarchicalDataTemplate.Triggers>
-                                <DataTrigger Binding="{Binding IsExpanded, RelativeSource={RelativeSource AncestorType=TreeViewItem}}"
-                                             Value="True">
-                                    <Setter TargetName="FolderIcon" Property="Text" Value="📂"/>
-                                </DataTrigger>
-                            </HierarchicalDataTemplate.Triggers>
-                        </HierarchicalDataTemplate>
-
-                        <DataTemplate DataType="{x:Type local:ModeAction}">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock x:Name="ActionIcon" Text="🖥️" Margin="0,0,6,0"/>
-                                <TextBlock Text="{Binding DisplayName}"/>
-                            </StackPanel>
-                            <DataTemplate.Triggers>
-                                <DataTrigger Binding="{Binding Type}" Value="Url">
-                                    <Setter TargetName="ActionIcon" Property="Text" Value="🌐"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding Type}" Value="CloseApp">
-                                    <Setter TargetName="ActionIcon" Property="Text" Value="⛔"/>
-                                </DataTrigger>
-                            </DataTemplate.Triggers>
-                        </DataTemplate>
-
-                    </TreeView.Resources>
-                </TreeView>
-
-                <StackPanel Grid.Row="2" Margin="0,8,0,0">
-                    <Button Content="+ Yeni Mod" Click="NewMode_Click" HorizontalAlignment="Stretch"/>
-                    <Button Content="⚙ Ayarlar" Click="Settings_Click"
-                            HorizontalAlignment="Stretch" Margin="0,6,0,0"/>
+                <StackPanel Orientation="Horizontal" Margin="6,4,0,18">
+                    <Border Width="34" Height="34" CornerRadius="9"
+                            Background="{DynamicResource AppAccentBrush}">
+                        <TextBlock Text="▶" Foreground="White" FontSize="14"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Mod Launcher" FontWeight="SemiBold" FontSize="15"
+                               Margin="10,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
+
+                <ListBox x:Name="NavList" Grid.Row="1" BorderThickness="0" Background="Transparent"
+                         SelectionChanged="NavList_SelectionChanged">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="Bd" CornerRadius="6" Padding="14,10" Margin="0,2"
+                                                Background="Transparent">
+                                            <Grid>
+                                                <Rectangle x:Name="Bar" Width="3" Height="16" RadiusX="1.5" RadiusY="1.5"
+                                                           HorizontalAlignment="Left" Margin="-9,0,0,0"
+                                                           Fill="{DynamicResource AppAccentBrush}" Visibility="Collapsed"/>
+                                                <ContentPresenter/>
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}"/>
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}"/>
+                                                <Setter TargetName="Bar" Property="Visibility" Value="Visible"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock FontFamily="Segoe Fluent Icons, Segoe MDL2 Assets" FontSize="16"
+                                           Width="24" Text="{Binding Icon}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Title}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- Yardım tuşu -->
+                <Button Grid.Row="2" Width="36" Height="36" Padding="0" HorizontalAlignment="Left"
+                        Margin="8,0,0,0" Click="Help_Click" ToolTip="{local:T Help_Tooltip}">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Grid>
+                                <Ellipse x:Name="Circle"
+                                         Fill="{DynamicResource ControlFillColorDefaultBrush}"
+                                         Stroke="{DynamicResource ControlStrokeColorDefaultBrush}"
+                                         StrokeThickness="1"/>
+                                <TextBlock Text="?" FontWeight="Bold" FontSize="16"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Circle" Property="Fill" Value="{DynamicResource ControlFillColorSecondaryBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
             </Grid>
 
-            <!-- SAĞ: düzenleme paneli -->
-            <Grid Grid.Column="1" Margin="8,0,0,0">
-
-                <TextBlock x:Name="EmptyText" Text="Soldan bir mod seç ya da yeni mod ekle"
-                           HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Gray"/>
-
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <Grid Margin="0,0,10,0">
-
-                        <!-- Mod seçilince -->
-                        <StackPanel x:Name="ModePanel" Visibility="Collapsed">
-                            <TextBlock Text="Mod adı" Margin="0,0,0,4"/>
-                            <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
-                                     LostFocus="Field_LostFocus"/>
-                            <TextBlock Text="{Binding Actions.Count, StringFormat='{}{0} eylem'}"
-                                       Foreground="Gray" Margin="0,6,0,0"/>
-
-                            <TextBlock Text="Renk" Margin="0,16,0,4"/>
-                            <ComboBox x:Name="ColorBox" HorizontalAlignment="Stretch"
-                                      DisplayMemberPath="Name" SelectedValuePath="Value"
-                                      SelectedValue="{Binding Color, Mode=TwoWay}"
-                                      SelectionChanged="Color_SelectionChanged"/>
-
-                            <TextBlock Text="Kısayol tuşu (kutuya tıkla, tuşlara bas)" Margin="0,16,0,4"/>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBox x:Name="HotkeyBox" IsReadOnly="True"
-                                         Text="{Binding Hotkey, Mode=OneWay}"
-                                         PreviewKeyDown="HotkeyBox_PreviewKeyDown"/>
-                                <Button Grid.Column="1" Content="Temizle" Click="ClearHotkey_Click"
-                                        Margin="8,0,0,0"/>
-                            </Grid>
-                            <TextBlock Text="Ctrl, Shift ya da Win ile birlikte bir tuşa bas. Örnek: Ctrl+Shift+1. Ctrl+Alt kullanma, Türkçe klavyede AltGr ile karışır."
-                                       Foreground="Gray" TextWrapping="Wrap" Margin="0,4,0,0"/>
-
-                            <ui:Button Content="▶ Modu Çalıştır" Appearance="Primary" Click="RunMode_Click"
-                                       HorizontalAlignment="Stretch" Margin="0,16,0,0"/>
-
-                            <WrapPanel Margin="0,12,0,0">
-                                <Button Content="Uygulama Ekle" Click="AddApp_Click" Margin="0,0,8,8"/>
-                                <Button Content="Site Ekle" Click="AddUrl_Click" Margin="0,0,8,8"/>
-                                <Button Content="Uygulama Kapat" Click="AddCloseApp_Click" Margin="0,0,8,8"/>
-                                <Button Content="▲ Yukarı" Click="MoveUp_Click" Margin="0,0,8,8"/>
-                                <Button Content="▼ Aşağı" Click="MoveDown_Click" Margin="0,0,8,8"/>
-                                <Button Content="Modu Sil" Click="DeleteMode_Click" Margin="0,0,8,8"/>
-                            </WrapPanel>
-                        </StackPanel>
-
-                        <!-- Eylem seçilince -->
-                        <StackPanel x:Name="ActionPanel" Visibility="Collapsed">
-                            <TextBlock x:Name="TargetLabel" Text="Adres" Margin="0,0,0,4"/>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <TextBox Text="{Binding Target, UpdateSourceTrigger=PropertyChanged}"
-                                         LostFocus="Field_LostFocus"/>
-                                <Button x:Name="BrowseTargetButton" Grid.Column="1" Content="Gözat..."
-                                        Click="BrowseTarget_Click" Margin="8,0,0,0"/>
-                            </Grid>
-
-                            <StackPanel x:Name="ArgsPanel" Margin="0,12,0,0">
-                                <TextBlock Text="Ek komutlar (isteğe bağlı)" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding Arguments, UpdateSourceTrigger=PropertyChanged}"
-                                         LostFocus="Field_LostFocus"/>
-                            </StackPanel>
-
-                            <StackPanel x:Name="BrowserPanel" Margin="0,12,0,0">
-                                <TextBlock Text="Tarayıcı (boşsa ayarlardaki tarayıcı kullanılır)" Margin="0,0,0,4"/>
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBox Text="{Binding BrowserPath, UpdateSourceTrigger=PropertyChanged}"
-                                             LostFocus="Field_LostFocus"/>
-                                    <Button Grid.Column="1" Content="Gözat..."
-                                            Click="BrowseBrowser_Click" Margin="8,0,0,0"/>
-                                </Grid>
-                            </StackPanel>
-
-                            <StackPanel x:Name="ForcePanel" Margin="0,12,0,0">
-                                <CheckBox Content="Kapanmazsa zorla kapat"
-                                          IsChecked="{Binding ForceClose, Mode=TwoWay}"
-                                          Click="Field_LostFocus"/>
-                                <TextBlock Text="Dikkat: zorla kapatılan uygulamada kaydedilmemiş işler kaybolur."
-                                           Foreground="Gray" TextWrapping="Wrap" Margin="0,4,0,0"/>
-                            </StackPanel>
-
-                            <WrapPanel Margin="0,16,0,0">
-                                <Button Content="▶ Eylemi Dene" Click="TestAction_Click" Margin="0,0,8,8"/>
-                                <Button Content="▲ Yukarı" Click="MoveUp_Click" Margin="0,0,8,8"/>
-                                <Button Content="▼ Aşağı" Click="MoveDown_Click" Margin="0,0,8,8"/>
-                                <Button Content="Eylemi Sil" Click="DeleteAction_Click" Margin="0,0,8,8"/>
-                            </WrapPanel>
-                        </StackPanel>
-
-                    </Grid>
-                </ScrollViewer>
-            </Grid>
+            <!-- Sayfa alanı -->
+            <ContentControl x:Name="PageHost" Grid.Column="1" Margin="6,4,16,14"/>
         </Grid>
     </Grid>
 </ui:FluentWindow>
